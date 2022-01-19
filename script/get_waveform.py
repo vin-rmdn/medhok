@@ -1,14 +1,18 @@
+#!/usr/bin/env python3
+
 import os
 import librosa
 from librosa import display
 import matplotlib
 from matplotlib import pyplot as plt
 import time
+import warnings
 
 import constants
+warnings.filterwarnings('ignore')
 
 matplotlib.use('agg')     # agg leaks. need fix
-matplotlib.rcParams['agg.path.chunksize'] = 3000
+# matplotlib.rcParams['agg.path.chunksize'] = 20000
 plt.ioff()
 
 dialects = os.listdir(constants.DATASET_DIR + '/dialects')
@@ -28,9 +32,9 @@ for dialect, wavs in wav_metadata.items():
             res_type='soxr_qq'
         )[0]
         print('; Saving plot...', end='')
-        fig = plt.figure(figsize=(20, 5))
+        fig = plt.figure(figsize=(70, 5))
         ax = fig.add_subplot(1, 1, 1)
-        display.waveplot(wav_float, sr=constants.SAMPLE_RATE, ax=ax)
+        display.waveshow(wav_float, sr=constants.SAMPLE_RATE, ax=ax)
         if not os.path.exists('../visualization/'+dialect):
             os.mkdir('../visualization/'+dialect)
         fig.tight_layout()

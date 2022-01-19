@@ -1,1 +1,4 @@
 dataset/*
+visualization/mfcc/*
+visualization/mel_spectrogram/*
+visualization/spectrogram/*
