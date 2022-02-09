@@ -2,3 +2,5 @@ dataset/*
 visualization/mfcc/*
 visualization/mel_spectrogram/*
 visualization/spectrogram/*
+model/*
+script/__pycache__/*
