@@ -9,8 +9,8 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 from matplotlib import pyplot as plt
 
-import get_dataset as ds
-import constants
+from . import get_dataset as ds
+from . import constants
 
 # Setup
 np.random.seed(42)

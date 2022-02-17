@@ -2,9 +2,7 @@
 """Preprocessing module — provides the developer with the functions required for preprocessing the audio dataset.
 """
 
-import gc
-
-import constants
+from . import constants
 import numpy as np
 from numba import jit
 
@@ -30,7 +28,7 @@ def split_window(feature, window_size=constants.WINDOW_SIZE):
 # Normalise features with respect to the mean and standard deviation.
 # Provide a mutually-exclusive option to choose between both mean and
 # both mean and variance.
-@jit(nopython=True)
+@jit(nopython=True, fastmath=True)
 def normalise_feature(
     feats: np.ndarray,
     mean_var=constants.USE_BOTH_NORMALISATION

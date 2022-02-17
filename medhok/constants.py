@@ -4,20 +4,24 @@ project. Those wishing to modify the execution of the model should be able to
 change values from this Python module.
 """
 
-import os
 from pathlib import Path
+
+import tensorflow as tf
 
 # DEBUG
 DEBUG = True
 
 
 # Directories
-DATASET_DIR = Path('../dataset/')
-FEATURES_DIR = Path('../dataset/features/')
-RAW_DIR = Path('../dataset/raw/')
-VISUALIZATION_DIR = Path('../visualization/')
-CHECKPOINT_DIR = Path('../model/checkpoints/')
-FEATURES_UNIFIED_DIR = Path('../dataset/unified/')
+PROJECT_ROOT_DIR = Path(__file__).resolve().parents[1]
+DATASET_DIR = Path(PROJECT_ROOT_DIR / 'dataset/')
+FEATURES_DIR = Path(PROJECT_ROOT_DIR / 'dataset/features/')
+RAW_DIR = Path(PROJECT_ROOT_DIR/'dataset/raw/')
+VISUALIZATION_DIR = Path(PROJECT_ROOT_DIR / 'visualization/')
+CHECKPOINT_DIR = Path(PROJECT_ROOT_DIR / 'model/checkpoints/')
+FEATURES_UNIFIED_DIR = Path(PROJECT_ROOT_DIR / 'dataset/unified/')
+TFRECORDS_DIR = Path(PROJECT_ROOT_DIR / 'dataset/tfrecords/')
+TENSORBOARD_LOG_DIR = Path(PROJECT_ROOT_DIR / 'log' / 'tensorboard/')
 
 
 # Metadata
@@ -55,5 +59,7 @@ EPOCH_STEPS = 128
 
 
 # Functions
-# def HOP_LENGTH(x): return int(x / 300)
-# def WINDOW_SIZE()
+def bytes_feature(value):
+    if isinstance(value, type(tf.constant(0))):
+        value = value.numpy()
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))

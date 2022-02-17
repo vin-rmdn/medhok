@@ -35,10 +35,10 @@ for dialect, wavs in wav_metadata.items():
         fig = plt.figure(figsize=(70, 5))
         ax = fig.add_subplot(1, 1, 1)
         display.waveshow(wav_float, sr=constants.SAMPLE_RATE, ax=ax)
-        if not os.path.exists('../visualization/'+dialect):
-            os.mkdir('../visualization/'+dialect)
+        if not os.path.exists('../visualization/' + dialect):
+            os.mkdir('../visualization/' + dialect)
         fig.tight_layout()
-        fig.savefig('../visualization/'+dialect+'/'+wav+'.png', pad_inches=0)
+        fig.savefig('../visualization/' + dialect + '/' + wav + '.png', pad_inches=0)
         plt.pause(.1)
         fig.clear()
         plt.close('all')
@@ -46,7 +46,7 @@ for dialect, wavs in wav_metadata.items():
         plt.clf()
         del wav_float
         del fig, ax
-        print(' Done! ('+str(time.time() - time_start)+')', end='\n')
+        print(' Done! (' + str(time.time() - time_start) + ')', end='\n')
 
 
 print('Done!')
