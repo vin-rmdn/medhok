@@ -4,3 +4,5 @@ visualization/mel_spectrogram/*
 visualization/spectrogram/*
 model/*
 script/__pycache__/*
+data/*
+medhok/**/__pycache__/*

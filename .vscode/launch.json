@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Medhok: extract-preload debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/medhok/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "extract"
+            ]
+        },{
+            "name": "Medhok: extract debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/medhok/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "extract",
+                "preloaded"
+            ]
+        }
+    ],
+}
