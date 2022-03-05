@@ -28,13 +28,17 @@ if __name__ == '__main__':
                 audio.get_features('mel_spectrogram', preloaded=False)
                 audio.get_features('spectrogram', preloaded=False)
                 audio.get_features('mfcc', preloaded=False)
-
-
-
-
-            print('Done!')
+            audio.feature_split()
+            logging.info('Getting one-hot-encoded dialect labels...')
+            audio.encode_variable('dialect')
         elif argv[2] == 'serialize':
-            if len(argv) > 2:
-                if 'n' in argv[2]:
-                    SERIALIZE_NORMALIZE = True
+            pass
+        elif argv[2] == 'train':
+            if len(argv) > 3:
+                if argv[3] == 'chatfield14':
+                    model = c.chatfield14
+                elif argv[3] == 'voxceleb':
+
+
+    print('Done!')
 

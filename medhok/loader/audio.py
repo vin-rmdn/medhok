@@ -47,7 +47,7 @@ class Audio:
         @param feature_name: Option between 'mel_spectrogram', 'spectrogram', or MFCC.
         @return none
         """
-        logging.info(f'Getting {feature_name} features...')
+        logging.info(f'Getting {feature_name} features with preloaded={preloaded}...')
 
         self.features = []
         self.dialects = []
@@ -72,12 +72,13 @@ class Audio:
             if not os.path.exists(c.FEATURES_DIR / dialect):
                 os.mkdir(c.FEATURES_DIR / dialect)
             for file in self.metadata[dialect]:
-                logging.info(f'Loading {file} with preloaded={preloaded}.')
+                logging.info(f'Loading {file}.')
                 if not preloaded:
                     time_start = time.time()
                     wav = self.__load_audio(str(dialect_path / (file + '.wav')))[0]
                     feature = extractor(wav)
                     feature = self.__trim_silence(wav, feature)
+                    # TODO: visualize and save image
                     feature = normalize(feature)
                     filename = str(c.FEATURES_DIR / dialect / (file + '-' + feature_name))
                     np.save(filename, feature)
@@ -89,8 +90,63 @@ class Audio:
                     _buffer = np.load(c.FEATURES_DIR / dialect / (file + '-' + feature_name + '.npy'))
                     self.features.append(_buffer)
                     self.dialects.append(dialect)
-                    logging.info(f"\tTime taken: {time.time() - time_start}")
+                    time_taken = time.time() - time_start
+                    logging.info(f"\tTime taken: {time_taken:.1f} second{'s' if time_taken > 1 else ''}.")
                     del _buffer, time_start
                     gc.collect()
+        logging.info('Function get_feature finished.')
 
-        logging.info('Done!')
+    def __window_split(self, feature):
+        windows = []
+        l_p = 0
+        r_p = c.WINDOW_SIZE
+        while l_p < feature.shape[1]:
+            temp = feature[:, l_p:r_p]
+            if temp.shape[1] != c.WINDOW_SIZE:
+                while temp.shape[1] < c.WINDOW_SIZE:
+                    temp = np.append(temp, [[0]] * feature.shape[0], axis=1)
+            windows.append(temp)
+            l_p += c.WINDOW_SIZE
+            r_p += c.WINDOW_SIZE
+        return np.array(windows, dtype=np.float32)
+
+    def feature_split(self):
+        """Split features into fixed windows of several seconds."""
+        logging.info('Splitting features into fixed windows...')
+        feats_split = []
+        dialects_split = []
+
+        for feature, dialect in zip(self.features, self.dialects):
+            _buffer = self.__window_split(feature)
+            for window in _buffer:
+                feats_split.append(window)
+                dialects_split.append(dialect)
+        del _buffer, feature, dialect
+        gc.collect()
+
+        logging.info('Converting features and dialects to numpy representations...')
+        feats_split = np.array(feats_split, dtype=np.float32)[:, :, :, np.newaxis]
+        dialects_split = np.array(dialects_split)[:, np.newaxis]
+
+        self.features = feats_split
+        self.dialects = dialects_split
+
+    def encode_variable(self, variable='dialect'):
+        """Encode variables to one-hot encoding.
+
+        @param variable: Option defaults to 'dialect'. Further developments are to be seen.
+        """
+        logging.info(f'Encoding {variable} to one-hot encoding...')
+        if variable == 'dialect':
+            dialects = np.unique(self.dialects)
+            self.dialects = np.array([np.where(dialects == d)[0][0] for d in self.dialects])
+            self.dialects = self.dialects[:, np.newaxis]
+            self.dialects = np.array([[1 if d == i else 0 for i in range(len(dialects))] for d in self.dialects])
+        else:
+            logging.error(f'Variable {variable} not supported.')
+            exit(1)
+
+    def create_tfrecords(self):
+        """Create TFRecords from loaded features with the additional dialect information."""
+        logging.info('Creating TFRecords...')
+        # TODO: create TFRecords

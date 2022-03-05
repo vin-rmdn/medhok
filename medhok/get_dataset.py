@@ -124,6 +124,7 @@ def load_windowed_dataset(
 
     return feats_split, dialects_split
 
+
 def __create_tf_record(filename, features, dialects):
     """
     Creates a TFRecord from a serialized feature and dialect.
@@ -139,8 +140,9 @@ def __create_tf_record(filename, features, dialects):
             tf_features = tf.train.Features(feature=tf_feature_list)
 
             record = tf.train.Example(features=tf_features)
-            record_bytes=record.SerializeToString()
+            record_bytes = record.SerializeToString()
             writer.write(record_bytes)
+
 
 def write_tf_records(feature_name='mel_spectrogram', split=False, normalised=True):
     """ Write TFRecord files to disk.
