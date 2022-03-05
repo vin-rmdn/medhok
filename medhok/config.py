@@ -46,11 +46,16 @@ SAMPLE_LENGTH = SAMPLE_RATE * 10
 FEATURES = [
     'mel_spectrogram', 'mfcc', 'spectrogram'
 ]
-WINDOW_SECOND = 5
-WINDOW_SIZE = int(MEL_SPEC_SECOND * WINDOW_SECOND)
+# WINDOW_SECOND = 5
 USE_BOTH_NORMALISATION = True
 MONO = True
 RESAMPLER_TYPE = 'soxr_vhq'
+
+
+# Window Properties
+FRAME_SIZE = 0.025  # seconds
+FRAME_STRIDE = 0.01     # stride
+
 
 # === Feature properties
 # Shon et al. (2018) used 160. Ours were taken from a website.

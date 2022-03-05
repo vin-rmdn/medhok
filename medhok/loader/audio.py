@@ -99,15 +99,15 @@ class Audio:
     def __window_split(self, feature):
         windows = []
         l_p = 0
-        r_p = c.WINDOW_SIZE
+        r_p = c.FRAME_SIZE * c.SAMPLE_RATE
         while l_p < feature.shape[1]:
             temp = feature[:, l_p:r_p]
             if temp.shape[1] != c.WINDOW_SIZE:
                 while temp.shape[1] < c.WINDOW_SIZE:
                     temp = np.append(temp, [[0]] * feature.shape[0], axis=1)
             windows.append(temp)
-            l_p += c.WINDOW_SIZE
-            r_p += c.WINDOW_SIZE
+            l_p += c.FRAME_STRIDE * c.SAMPLE_RATE
+            r_p += c.FRAME_STRIDE * c.SAMPLE_RATE
         return np.array(windows, dtype=np.float32)
 
     def feature_split(self):
