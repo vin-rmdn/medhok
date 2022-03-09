@@ -5,26 +5,45 @@ VoxCeleb (arch referred to by Shon et al.):
 ## =============== Feature input ===============
 - Mono
 - 16-bit
-- 16kHz for consistency
 
-### Framing
+Frequency
+- 8 kHz (Gris et al., 2020)
+    - Considering some audio was originated from radio recordings, which can produce bias
+    - Low sample rate can be used to improve the learning speed
+    - Sufficient for LID model training, considering normal voice range is about 500Hz to 2kHz (?)
+- 16kHz for consistency
+- 22.05kHz (Dragichi et al., 2020)
+    - 'since most relevant frequency components of speech signals are below 11 kHz.'
+
+### Framing (for further transformation with STFT; n_fft?)
 - **25ms** hamming window (Nagrani et al., 2017; Warohma et al., 2018; Snyder et al., 2017)
-    - 8000 samples / 1000ms * 25ms = 200 samples
-        - Samples = Sample / second
-        - Second = 1000ms
+    - e.g., Sample Rate: 16000 Hz
+        - 25ms = 16000 / 1000 * 25 = 400 Hz -> Window size in terms of samples
+        - 10 seconds -> 16000 * 10 / 400 = 400 representations in 10 seconds
+        - 10 seconds with 10ms overlap:
+            - Hop: 240 samples
+
 
 ### Window
 - 3 seconds (Snyder et al., 2017)
+- 5 seconds (Gris et al., 2020)
+    - All samples below 5 seconds are discarded
+- 10 seconds  (Singh et al., 2021 - Spoken Language Identification Using Deep Learning)
+    - 512 samples (Dragichi et al., 2020) - A Study on Spoken Language Identification using Deep Neural Networks
+        - All samples below 10 seconds are discarded
 
 ### Step size
 - **10ms** step (Nagrani et al., 2017)
+- 50% overlap (Gris et al., 2020)
 - 60% overlapping window (Warohma et al., 2018)
     - 25 ms * 0.6 = **15ms** step size
+- **20ms** (Dragichi et al., 2020 - 441 sample hop size)
 
 ### Hamming Window
 - To minimize the effect of signal discontinuity at each beginning and end of the frame
 - Looks like Gaussian distribution
 - Formula: W(n) = 0.54 * 0.46 cos(2πn / N-1)
+- Used by default with librosa.stft (and its derivatives such as )
 > Used by Nagrani et al. (2017) and Warohma et al. (2018)
 
 ## Feature Preprocessing
@@ -49,10 +68,26 @@ MFCC: (Warohma et al., 2018; Snyder et al., 2017)
     > 25ms means 40 data per second. Below 20ms (50 data per second), "it may cause each frame to lose its spectral estimated reliability and its differentiating power may decrease." (Warohma et al., 2018)
     > Currently we use 30 data per second (33.33ms)
 
+log-Spectrogram (Gris et al., 2020)
+- Hann window
+
+## Data Augmentation
+- Speed Changing
+    - Percentage used as follows: 5%, 10%, 15%, and 20% (Gris et al., 2020)
+    - Speed reduction and increase
+- Pitch Changing
+    - Eight rates (Gris et al., 2020)
+- Background noise insertion
+    - Four noise types (Gris et al., 2020)
+
+
 [Feature types]
 MFCC:
 - 13 coefficients (Warohma et al., 2018)
 - 20 coefficients (Snyder et al., 2017)
+
+Mel-Filter Bank
+- 129 mel bands (Dragichi et al., 2020)
 
 CNN-M (referred to as VGG-M by VoxCeleb):
 model = tf.keras.Sequential([

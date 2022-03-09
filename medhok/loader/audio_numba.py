@@ -6,7 +6,7 @@ import config as c
 
 
 @jit(nopython=True, fastmath=True)
-def normalize(
+def CMVN(
     feats: np.ndarray,
     mean_var=c.USE_BOTH_NORMALISATION
 ) -> np.ndarray:

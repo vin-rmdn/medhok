@@ -4,7 +4,7 @@ import tensorflow as tf
 import numpy as np
 
 
-class TimeDelay(tf.keras.engine.base_layer.Layer):
+class TimeDelay(tf.keras.layers.Layer):
     """Time Delay layer class. Credits to findnitai (https://github.com/findnitai/TDNN-layer), amarioncosmo (https://github.com/amarioncosmo/tdnn.py) and  amarion35 (https://github.com/amarion35/tdnn.py) for implementing TDNN in Keras.
     """
     def __init__(self,

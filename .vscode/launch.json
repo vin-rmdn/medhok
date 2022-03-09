@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Medhok: extract-preload debug",
+            "name": "Medhok: extract debug",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/medhok/main.py",
@@ -14,7 +14,7 @@
                 "extract"
             ]
         },{
-            "name": "Medhok: extract debug",
+            "name": "Medhok: extract-preload debug",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/medhok/main.py",

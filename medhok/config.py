@@ -9,11 +9,14 @@ from pathlib import Path
 import tensorflow as tf
 import numpy as np
 import librosa
+# import matplotlib
 
 from model_helper.time_delay import TimeDelay
 
 # DEBUG
 DEBUG = True
+POOL_SIZE = 12  # Number of threads
+# matplotlib.use('svg')
 
 
 # Directories
@@ -22,7 +25,7 @@ PROJECT_ROOT_DIR = Path(__file__).parents[1].resolve()
 DATASET_DIR = Path(PROJECT_ROOT_DIR / 'data')
 FEATURES_DIR = Path(DATASET_DIR / 'features')
 RAW_DIR = Path(DATASET_DIR / 'audio')
-VISUALIZATION_DIR = Path(PROJECT_ROOT_DIR / 'visualization/')
+VISUALIZATION_DIR = Path(PROJECT_ROOT_DIR / 'visualization')
 CHECKPOINT_DIR = Path(PROJECT_ROOT_DIR / 'model/checkpoints/')
 FEATURES_UNIFIED_DIR = Path(PROJECT_ROOT_DIR / 'dataset/unified/')
 TFRECORDS_DIR = Path(PROJECT_ROOT_DIR / 'dataset/tfrecords/')
@@ -35,14 +38,15 @@ DIALECTS = list(RAW_DIR.iterdir())
 
 
 # === AUDIO PROPERTIES
-SAMPLE_RATE = 8000  # 8 kHz sample rate;
+SAMPLE_RATE = 16000  # 16kHz sample rate; at this setting, 8000Hz reports empty frequencies
 # we down sample because we want 4KHz making the model more robust against
 # noise in the higher frequencies.
 IMAGE_HEIGHT = 500
 MEL_SPEC_SECOND = 30.1
-SPLIT_SECOND = 10   # second
+SPLIT_SECOND = 5   # second
 WAVE_SAMPLE_LENGTH = int(SAMPLE_RATE * 0.25)
-SAMPLE_LENGTH = SAMPLE_RATE * 10
+SEGMENT_LENGTH = SAMPLE_RATE * SPLIT_SECOND
+SEGMENT_STRIDE = SEGMENT_LENGTH // 2
 FEATURES = [
     'mel_spectrogram', 'mfcc', 'spectrogram'
 ]
@@ -50,11 +54,14 @@ FEATURES = [
 USE_BOTH_NORMALISATION = True
 MONO = True
 RESAMPLER_TYPE = 'soxr_vhq'
+POLYNOMIAL_ORDER = 6
 
 
 # Window Properties
-FRAME_SIZE = 0.025  # seconds
-FRAME_STRIDE = 0.01     # stride
+FRAME_SIZE_SECOND = 0.025  # seconds
+FRAME_STRIDE_SECOND = 0.01     # stride
+FRAME_SIZE = int(SAMPLE_RATE * FRAME_SIZE_SECOND)   # for n_fft
+FRAME_STRIDE = int(SAMPLE_RATE * FRAME_STRIDE_SECOND)   # for hop_length
 
 
 # === Feature properties
@@ -65,9 +72,10 @@ MFCC_AMOUNT = 40
 F_MIN = 200
 F_MAX = 4000
 DEFAULT_FEATURE = 'mel_spectrogram'
+PRE_EMPHASIS_ALPHA = 0.97
 
 
-FIGURE_SIZE = (70, 5)
+FIGURE_SIZE = (15, 5)
 
 
 # TensorFlow
@@ -86,9 +94,8 @@ def bytes_feature(value):
 
 def mel_spectrogram(wav):
     return librosa.feature.melspectrogram(
-        wav, sr=SAMPLE_RATE, n_fft=FFT_AMOUNT,
-        hop_length=HOP_LENGTH,
-        fmin=F_MIN, fmax=F_MAX
+        wav, sr=SAMPLE_RATE, n_fft=FRAME_SIZE,
+        hop_length=FRAME_STRIDE
     )
 
 
@@ -97,24 +104,47 @@ def MFCC(wav):
         wav,
         sr=SAMPLE_RATE,
         n_mfcc=MFCC_AMOUNT,
-        n_fft=FFT_AMOUNT,
-        hop_length=HOP_LENGTH,
-        fmin=F_MIN,
-        fmax=F_MAX)
+        n_fft=FRAME_SIZE,
+        hop_length=FRAME_STRIDE
+    )
 
 
 def spectrogram(wav):
     return np.abs(
         librosa.core.stft(
             wav,
-            n_fft=FFT_AMOUNT,
-            hop_length=HOP_LENGTH,
-            win_length=FFT_AMOUNT
+            n_fft=FRAME_SIZE,
+            hop_length=FRAME_STRIDE,
+            win_length=FRAME_SIZE
         )
     )
 
 
 # === TensorFlow models
+def baseline(_shape) -> tf.keras.Model:
+    """Baseline model that is proposed for my final project. Consists of three convolutional layers alongside a max pooling layer after each layer, a Flattening layer, several fully-connected layers of 32, 64 and 128 layers, and a softmax layers of 16 classes.
+
+    Args:
+        _shape (_type_): Shape of the input tensor.
+
+    Returns:
+        tf.keras.Model: A Keras sequential model.
+    """
+    return tf.keras.Sequential([
+        tf.keras.layers.Conv2D(32, (3, 3), activation=tf.nn.relu, input_shape=_shape),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(64, (3, 3), activation=tf.nn.relu),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(128, (3, 3), activation=tf.nn.relu),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(32, activation=tf.nn.relu),
+        tf.keras.layers.Dense(64, activation=tf.nn.relu),
+        tf.keras.layers.Dense(128, activation=tf.nn.relu),
+        tf.keras.layers.Dense(16, activation=tf.nn.softmax)
+    ])
+
+
 def chatfield14(_shape) -> tf.keras.Model:
     """Also known as CNN-M, or VGG-M (Nagrani et al., 2017)
 
@@ -243,10 +273,10 @@ def snyder17(_shape) -> tf.keras.Model:
     P.S.: Do not forget to omit the softmax layer and get either the first or second embeddings after training.
 
     Args:
-        _shape (_type_): _description_
+        _shape (list): Shape of the input tensor
 
     Returns:
-        tf.keras.Model: _description_
+        tf.keras.Model: A Keras Sequential model.
     """
     return tf.keras.Sequential([
         TimeDelay([-2, 2], dilation_rate=1),
@@ -257,4 +287,61 @@ def snyder17(_shape) -> tf.keras.Model:
         # TODO: complete TDNN
     ])
 
+
 time_delay = snyder17   # alias
+
+
+def draghici20(_shape, type='crnn') -> tf.keras.Model:
+    """Per Draghici et al. (2020):
+    "We re-implemented the CNN model and the CRNN model based on a freely-available implementation (https://github.com/HPI-DeepLearning/crnn-lid) in which some of the model parameters such as number of layers and filters differ from the original paper."
+
+    "...both models share a feature learning front-end of seven convolutional blocks each consisting of 2D convoultional layers, batch normalization, and max pooling for downsampling along time and frequency..."
+
+    Args:
+        _shape (list): Shape of the input tensor
+
+    Returns:
+        tf.keras.Model: A Keras Sequential model.
+    """
+    model = tf.keras.Sequential()
+
+    # ConvBlock(64) - Input
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=tf.nn.relu, input_shape=_shape))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
+    # ConvBlock(128)
+    model.add(tf.keras.layers.Conv2D(128, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
+    # ConvBlock(256)
+    model.add(tf.keras.layers.Conv2D(256, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
+    # ConvBlock(256)
+    model.add(tf.keras.layers.Conv2D(256, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
+    # ConvBlock(512)
+    model.add(tf.keras.layers.Conv2D(512, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
+    # ConvBlock(512)
+    model.add(tf.keras.layers.Conv2D(512, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
+    # ConvBlock(512)
+    model.add(tf.keras.layers.Conv2D(512, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
+    # Global Max Pooling
+    model.add(tf.keras.layers.GlobalMaxPool2D())
+    if type == 'crnn':
+        # Bidirectional LSTM(256)
+        model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(256, return_sequences=True)))
+        # TODO: check for model summary
+    elif type == 'cnn':
+        # Dense(1024)
+        model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu))
+    # Output
+    model.add(tf.keras.layers.Dense(16, activation=tf.nn.softmax))
+    return model
