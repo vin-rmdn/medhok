@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 from sys import argv
 import logging
+import datetime
+
+from matplotlib import pyplot as plt
 
 from loader.audio import Audio
+from loader.generator import MedhokGenerator
+from loader.greedy_loader import GreedyLoader
+from loader.feature_metadata import FeatureMetadata
 import config as c
 
 # STARTUP PARAMETERS
@@ -39,27 +45,10 @@ if __name__ == '__main__':
             # audio.feature_split()
             # logging.info('Getting one-hot-encoded dialect labels...')
             # audio.encode_variable('dialect')
-        elif argv[2] == 'serialize':
+        elif argv[1] == 'serialize':
             pass
-        elif argv[2] == 'train':
-            if len(argv) > 3:
-                if argv[3] == 'baseline':
-                    model = c.baseline
-                elif argv[3] == 'chatfield14':
-                    model = c.chatfield14
-                elif argv[3] == 'voxceleb':
-                    model = c.voxceleb
-                elif argv[3] == 'warohma18':
-                    model = c.warohma18
-                elif argv[3] == 'snyder17':
-                    model = c.snyder17
-                elif argv[3] == 'dragichi2020':
-                    model = c.draghici20
-                else:
-                    logging.error(f'Unknown model: {argv[3]}')
-                    exit(1)
-            else:
-                model = c.baseline
+        elif argv[1] == 'train':
+            # Processing args 4: feature parameter
             if len(argv) > 4:
                 if argv[4] == 'mel_spectrogram':
                     feature = 'mel_spectrogram'
@@ -70,6 +59,82 @@ if __name__ == '__main__':
                 else:
                     logging.error(f'Unknown feature: {argv[4]}')
                     exit(1)
-            logging.info(f'Training model: {model}')
+            else:
+                feature = 'mel_spectrogram'
             logging.info(f'Features selected: {feature}')
 
+            # Processing args 3: training parameters. Needs to be done after specifying features.
+            if len(argv) > 3:
+                if argv[3] == 'baseline':
+                    model = c.baseline(c.INPUT_SHAPE(feature))
+                elif argv[3] == 'chatfield14':
+                    model = c.chatfield14(c.INPUT_SHAPE(feature))
+                elif argv[3] == 'voxceleb':
+                    model = c.voxceleb(c.INPUT_SHAPE(feature))
+                elif argv[3] == 'warohma18':
+                    model = c.warohma18(c.INPUT_SHAPE(feature))
+                elif argv[3] == 'snyder17':
+                    model = c.snyder17(c.INPUT_SHAPE(feature))
+                elif argv[3] == 'dragichi2020':
+                    model = c.draghici20(c.INPUT_SHAPE(feature))
+                else:
+                    logging.error(f'Unknown model: {argv[3]}')
+                    exit(1)
+                model_name = argv[3]
+            else:
+                model = c.baseline(c.INPUT_SHAPE(feature))
+                model_name = 'baseline'
+            logging.info(f'Training model: {model_name}...')
+
+            # Getting features metadata
+            # X_train, X_test, y_train, y_test = FeatureMetadata.load_feature_metadata(feature, split=True)
+            X_train, X_test, y_train, y_test = FeatureMetadata.load_feature_metadata(feature, split=True, sample=True)
+            y_train = GreedyLoader.transform_dialects(y_train)
+            y_test = GreedyLoader.transform_dialects(y_test)
+
+            # Loading Keras generator
+            logging.info('Loading Keras generator...')
+            train_generator = MedhokGenerator(
+                X_train,
+                # y_train,
+                **c.GENERATOR_PARAMS
+            )
+            valid_generator = MedhokGenerator(
+                X_test,
+                # y_test,
+                **c.GENERATOR_PARAMS
+            )
+
+            model.summary()
+
+            model.compile(
+                optimizer=c.OPTIMIZER,
+                loss=c.LOSS,
+                metrics=c.METRICS
+            )
+            history = model.fit(
+                train_generator,
+                validation_data=valid_generator,
+                epochs=c.EPOCHS,
+                # steps_per_epoch=c.EPOCH_STEPS,
+                verbose=1,
+                callbacks=[c.CHECKPOINT_CALLBACK(model_name, feature)]
+            )
+
+            # Creating model report
+            fig, ax = plt.subplots(2, 1, figsize=(16, 12))
+            fig.suptitle('Plots of model performance: ' + feature + ', ' + model_name)
+
+            ax[0].plot(history.history['loss'], 'r')
+            ax[0].plot(history.history['val_loss'], 'g')
+            ax[1].plot(history.history['categorical_accuracy'], 'r')
+            ax[1].plot(history.history['val_categorical_accuracy'], 'g')
+            ax[0].grid()
+            ax[1].grid()
+
+            plt.savefig(
+                '../visualization/performance/' + str(datetime.now()) + '-' + feature + '-' + model_name + '.png')
+
+            # Saving model
+            model.save('../model/model-' + feature + '-' + model_name + '.h5')
+            model.save_weights('../model/weights/model-' + feature + '-' + model_name + '/')

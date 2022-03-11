@@ -20,6 +20,7 @@ def CMVN(
     for i in range(feats.shape[1]):
         feats[:, i] = feats[:, i] - np.mean(feats[:, i])
         if mean_var:
+            # /home/vin/Projects/medhok/medhok/loader/audio_numba.py:23: RuntimeWarning: invalid value encountered in true_divide
             feats[:, i] /= np.std(feats[:, i])
 
     return feats

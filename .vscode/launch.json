@@ -23,6 +23,15 @@
                 "extract",
                 "preloaded"
             ]
+        },{
+            "name": "Medhok: train debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/medhok/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "train"
+            ]
         }
     ],
 }

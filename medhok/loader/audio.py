@@ -9,7 +9,7 @@ from librosa.display import specshow
 import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
-from dsp import filter
+from dsp.filter import butter_highpass_filter, butter_lowpass_filter
 
 import config as c
 from loader.audio_numba import CMVN
@@ -19,7 +19,8 @@ plt.style.use('seaborn')
 
 
 class Audio:
-    """The Audio class of Medhok. Provides data to recorded instances of Javanese language interviews as a class.
+    """The Audio class of Medhok. Provides data to recorded instances of
+    Javanese language interviews as a class.
     """
     def __init__(self):
         self.dialects = []
@@ -53,8 +54,8 @@ class Audio:
             numpy.ndarray: filtered wave file
         """
         # Low-pass filter
-        wav = filter.butter_lowpass_filter(wav, cutoff=c.F_MAX, fs=c.SAMPLE_RATE, order=c.POLYNOMIAL_ORDER)
-        wav = filter.butter_highpass_filter(wav, cutoff=c.F_MIN, fs=c.SAMPLE_RATE, order=c.POLYNOMIAL_ORDER)
+        wav = butter_lowpass_filter(wav, cutoff=c.F_MAX, fs=c.SAMPLE_RATE, order=c.POLYNOMIAL_ORDER)
+        wav = butter_highpass_filter(wav, cutoff=c.F_MIN, fs=c.SAMPLE_RATE, order=c.POLYNOMIAL_ORDER)
         return wav
 
     def __load_audio(self, filename):
@@ -114,7 +115,7 @@ class Audio:
         """Splits a wav file into several segments of decided seconds.
 
         Args:
-            wav (_type_): input wav to be split
+            wav (np.ndarray): input wav to be split
 
         Returns:
             np.ndarray: split segments
@@ -127,6 +128,8 @@ class Audio:
             while temp.shape[0] < c.SEGMENT_LENGTH:
                 temp = np.append(temp, [0] * (c.SEGMENT_LENGTH - temp.shape[0]))
             segments.append(temp)
+            if l_p + c.SEGMENT_LENGTH >= wav.shape[0]:
+                break
             l_p += c.SEGMENT_STRIDE
             r_p += c.SEGMENT_STRIDE
         return np.array(segments, dtype=np.float32)
@@ -149,7 +152,7 @@ class Audio:
 
         Args:
             feature (_type_): feature to be saved
-            filename (_type_): filename to be saved
+            filename (_type_): filename to be saved in
         """
         np.save(filename, feature)
 
@@ -179,8 +182,10 @@ class Audio:
         dial_iter = 1
         for dialect_path in dialects:
             dialect = dialect_path.name
-            if not os.path.exists(c.FEATURES_DIR / dialect):
-                os.mkdir(c.FEATURES_DIR / dialect)
+            if not os.path.exists(c.FEATURES_DIR / feature_name):
+                os.mkdir(c.FEATURES_DIR / feature_name)
+            if not os.path.exists(c.FEATURES_DIR / feature_name/ dialect):
+                os.mkdir(c.FEATURES_DIR / feature_name / dialect)
             wav_iter = 1
             for file in self.metadata[dialect]:
                 logging.info(f'Loading {file}. (dial {dial_iter}/{len(dialects)}, file {wav_iter}/{len(self.metadata[dialect])})')
@@ -195,14 +200,12 @@ class Audio:
                     wav = self.__trim_silence(wav, feature=None)
                     wav = self.__filter_frequency(wav)
                     feature = extractor(wav)
-                    vis_timer = time.time()
-                    self.__save_visualization(
-                        feature, c.VISUALIZATION_DIR / feature_name / dialect / f'{file}.svg',
-                        feature_name=feature_name
-                    )
-                    logging.info(f'Saving {file} visualization took {time.time() - vis_timer:.2f} second(s).')
-                    # logging.info(f'{file}: load {load_end - load_start:.2f}, preemp {pre_emphasis_end - pre_emphasis_start:.2f}, trim {trim_silence_end - trim_silence_start:.2f}, filter {filter_end - filter_start:.2f}, feature {feature_end - feature_start:.2f}, vis {time.time() - vis_timer:.2f}')
-                    # TODO: complete this.
+                    # vis_timer = time.time()
+                    # self.__save_visualization(
+                    #     feature, c.VISUALIZATION_DIR / feature_name / dialect / f'{file}.svg',
+                    #     feature_name=feature_name
+                    # )
+                    # logging.info(f'Saving {file} visualization took {time.time() - vis_timer:.2f} second(s).')
 
                     # Segments
                     segments = self.__split_segments(wav)
@@ -211,20 +214,22 @@ class Audio:
                         segment = segments[iteration]
                         feature = extractor(segment)
                         feature = CMVN(feature)
-
-                        # Feature visualization, saved on 'visualization/features'
-                        # vis_filepath = c.VISUALIZATION_DIR / feature_name / dialect / (file + f'-{iteration}' + '.svg')
-                        # logging.info(f'\tSaving file as {vis_filepath.stem}')
-                        # self.__save_visualization(feature, vis_filepath)
+                        feature = np.nan_to_num(feature)    # anticipate divide by 0
 
                         # Cache features
-                        filepath = str(c.FEATURES_DIR / dialect / (file + '-' + feature_name + '-' + str(iteration)))
-                        # np.save(filepath, feature)
+                        filepath = str(c.FEATURES_DIR / feature_name / dialect / (file + '-' + feature_name + '-' + str(iteration)))
+
+                        # Check for null values
+                        if np.isnan(feature).any():
+                            logging.error(f'Iteration {iteration + 1} ({iteration}) of {file} has null values. Start: {c.SEGMENT_STRIDE * iteration}, end: {c.SEGMENT_STRIDE * iteration + c.SEGMENT_LENGTH}. Exiting...')
+                            exit(1)
+
+                        # Saving
                         np.save(filepath, feature)
                         self.features.append(feature)
                         logging.info(f'Iteration {iteration + 1} of {segments.shape[0]}, took {time.time() - split_start:.2f} seconds.')
                     logging.info(f"\tTime taken: {time.time() - time_start}")
-                    del time_start, wav, vis_timer, segments, split_start, segment, feature, filepath
+                    del time_start, wav, segments, split_start, segment, feature, filepath
                     gc.collect()
                 else:
                     logging.info(f'Getting {feature_name} from {file}.')

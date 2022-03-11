@@ -7,6 +7,7 @@ change values from this Python module.
 from pathlib import Path
 
 import tensorflow as tf
+import tensorflow_addons as tfa
 import numpy as np
 import librosa
 # import matplotlib
@@ -30,11 +31,17 @@ CHECKPOINT_DIR = Path(PROJECT_ROOT_DIR / 'model/checkpoints/')
 FEATURES_UNIFIED_DIR = Path(PROJECT_ROOT_DIR / 'dataset/unified/')
 TFRECORDS_DIR = Path(PROJECT_ROOT_DIR / 'dataset/tfrecords/')
 TENSORBOARD_LOG_DIR = Path(PROJECT_ROOT_DIR / 'log' / 'tensorboard/')
+MODEL_DIR = Path(PROJECT_ROOT_DIR / 'model')
 
 
 # Metadata
 # DIALECTS = os.listdir(DATASET_DIR + 'raw/')
 DIALECTS = list(RAW_DIR.iterdir())
+FEATURE_AMOUNT = {
+    'mel_spectrogram': 128,
+    'spectrogram': 201,
+    'mfcc': 40
+}
 
 
 # === AUDIO PROPERTIES
@@ -73,16 +80,36 @@ F_MIN = 200
 F_MAX = 4000
 DEFAULT_FEATURE = 'mel_spectrogram'
 PRE_EMPHASIS_ALPHA = 0.97
+WINDOW_SIZE = 501
 
 
 FIGURE_SIZE = (15, 5)
 
 
-# TensorFlow
+# ====== TensorFlow
 BATCH_SIZE = 32
 LEARNING_RATE = 1e-4
-EPOCHS = 200
+EPOCHS = 250
 EPOCH_STEPS = 128
+
+# Parameters
+OPTIMIZER = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
+LOSS = tf.keras.losses.CategoricalCrossentropy()
+METRICS = [
+    tf.keras.metrics.CategoricalAccuracy(name='acc'),
+    tf.keras.metrics.Precision(name='prec'),
+    tf.keras.metrics.Recall(name='rec'),
+    tfa.metrics.F1Score(num_classes=len(DIALECTS), name='f1')
+]
+
+# Generator parameters
+GENERATOR_PARAMS = {
+    'dim': (128, WINDOW_SIZE),
+    'batch_size': BATCH_SIZE,
+    'n_dialects': len(DIALECTS),
+    'n_channels': 1,
+    'shuffle': True
+}
 
 
 # Functions
@@ -120,8 +147,28 @@ def spectrogram(wav):
     )
 
 
+def INPUT_SHAPE(feature='mel_spectrogram') -> list:
+    """Returns input shape based on the feature for the model input.
+
+    mel_spectrogram has 128 features per time frame, spectrogram has 201 features and MFCC contains 40 coefficients. On top of that, the function will return the shape of window length (as set by c.WINDOW_SIZE) and channels (1).
+
+    Args:
+        feature (str, optional): Audio features wished to be used. Defaults to 'mel_spectrogram'.
+
+    Returns:
+        list: Input shape for Keras models
+    """
+    return [FEATURE_AMOUNT[feature], WINDOW_SIZE, 1]
+
+
+def CHECKPOINT_CALLBACK(model_name, feature_name):
+    return tf.keras.callbacks.ModelCheckpoint(
+    filepath = CHECKPOINT_DIR / f'{model_name}-{feature_name}' / f'{model_name}-{feature_name}', save_weights_only=True, verbose=1
+)
+
+
 # === TensorFlow models
-def baseline(_shape) -> tf.keras.Model:
+def baseline(_shape):
     """Baseline model that is proposed for my final project. Consists of three convolutional layers alongside a max pooling layer after each layer, a Flattening layer, several fully-connected layers of 32, 64 and 128 layers, and a softmax layers of 16 classes.
 
     Args:
@@ -131,16 +178,18 @@ def baseline(_shape) -> tf.keras.Model:
         tf.keras.Model: A Keras sequential model.
     """
     return tf.keras.Sequential([
-        tf.keras.layers.Conv2D(32, (3, 3), activation=tf.nn.relu, input_shape=_shape),
-        tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.Conv2D(64, (3, 3), activation=tf.nn.relu),
+        tf.keras.layers.Conv2D(64, (3, 3), activation=tf.nn.relu, input_shape=_shape),
         tf.keras.layers.MaxPooling2D((2, 2)),
         tf.keras.layers.Conv2D(128, (3, 3), activation=tf.nn.relu),
         tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(256, (3, 3), activation=tf.nn.relu),
+        tf.keras.layers.MaxPooling2D((2, 2)),
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(32, activation=tf.nn.relu),
-        tf.keras.layers.Dense(64, activation=tf.nn.relu),
-        tf.keras.layers.Dense(128, activation=tf.nn.relu),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(512, activation=tf.nn.relu),
+        tf.keras.layers.Dense(1024, activation=tf.nn.relu),
+        tf.keras.layers.Dense(1024, activation=tf.nn.relu),
+        tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(16, activation=tf.nn.softmax)
     ])
 
