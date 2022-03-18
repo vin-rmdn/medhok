@@ -30,16 +30,16 @@ VISUALIZATION_DIR = Path(PROJECT_ROOT_DIR / 'visualization')
 CHECKPOINT_DIR = Path(PROJECT_ROOT_DIR / 'model/checkpoints/')
 FEATURES_UNIFIED_DIR = Path(PROJECT_ROOT_DIR / 'dataset/unified/')
 TFRECORDS_DIR = Path(PROJECT_ROOT_DIR / 'dataset/tfrecords/')
-TENSORBOARD_LOG_DIR = Path(PROJECT_ROOT_DIR / 'log' / 'tensorboard/')
+LOG_DIR = PROJECT_ROOT_DIR / 'log'
+TENSORBOARD_LOG_DIR = LOG_DIR / 'tensorboard/'
 MODEL_DIR = Path(PROJECT_ROOT_DIR / 'model')
-
 
 # Metadata
 # DIALECTS = os.listdir(DATASET_DIR + 'raw/')
 DIALECTS = list(RAW_DIR.iterdir())
 FEATURE_AMOUNT = {
     'mel_spectrogram': 128,
-    'spectrogram': 201,
+    'spectrogram': 190,
     'mfcc': 40
 }
 
@@ -74,23 +74,26 @@ FRAME_STRIDE = int(SAMPLE_RATE * FRAME_STRIDE_SECOND)   # for hop_length
 # === Feature properties
 # Shon et al. (2018) used 160. Ours were taken from a website.
 HOP_LENGTH = 266
-FFT_AMOUNT = 256
+FFT_AMOUNT = 800
+MEL_AMOUNT = 128
 MFCC_AMOUNT = 40
 F_MIN = 200
 F_MAX = 4000
 DEFAULT_FEATURE = 'mel_spectrogram'
 PRE_EMPHASIS_ALPHA = 0.97
 WINDOW_SIZE = 501
-
+FREQUENCY_RESOLUTION = 20
+SPEC_LOWER_BOUND = F_MIN // FREQUENCY_RESOLUTION
+SPEC_UPPER_BOUND = F_MAX // FREQUENCY_RESOLUTION
 
 FIGURE_SIZE = (15, 5)
 
 
 # ====== TensorFlow
-BATCH_SIZE = 32
-LEARNING_RATE = 1e-4
-EPOCHS = 250
-EPOCH_STEPS = 128
+BATCH_SIZE = 16     # 32 normal, 16 for spectrograms
+LEARNING_RATE = 1e-5
+EPOCHS = 200
+EPOCH_STEPS = 128   # 16 for shon18 due to limited vram, 64 for spectrograms, 128 for usual
 
 # Parameters
 OPTIMIZER = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
@@ -111,6 +114,7 @@ GENERATOR_PARAMS = {
     'shuffle': True
 }
 
+WEIGHT_DECAY = 1e-2
 
 # Functions
 def bytes_feature(value):
@@ -121,8 +125,13 @@ def bytes_feature(value):
 
 def mel_spectrogram(wav):
     return librosa.feature.melspectrogram(
-        wav, sr=SAMPLE_RATE, n_fft=FRAME_SIZE,
-        hop_length=FRAME_STRIDE
+        wav,
+        sr=SAMPLE_RATE,
+        win_length=FRAME_SIZE,
+        hop_length=FRAME_STRIDE,
+        n_mels=MEL_AMOUNT,
+        fmin=F_MIN,
+        fmax=F_MAX
     )
 
 
@@ -140,25 +149,28 @@ def spectrogram(wav):
     return np.abs(
         librosa.core.stft(
             wav,
-            n_fft=FRAME_SIZE,
+            n_fft=FFT_AMOUNT,
             hop_length=FRAME_STRIDE,
             win_length=FRAME_SIZE
         )
     )
 
 
-def INPUT_SHAPE(feature='mel_spectrogram') -> list:
+def INPUT_SHAPE(feature='mel_spectrogram', generator=False) -> list:
     """Returns input shape based on the feature for the model input.
 
     mel_spectrogram has 128 features per time frame, spectrogram has 201 features and MFCC contains 40 coefficients. On top of that, the function will return the shape of window length (as set by c.WINDOW_SIZE) and channels (1).
 
     Args:
         feature (str, optional): Audio features wished to be used. Defaults to 'mel_spectrogram'.
+        generator (bool, optional): Whether the input shape is for a generator or not. Defaults to False.
 
     Returns:
         list: Input shape for Keras models
     """
-    return [FEATURE_AMOUNT[feature], WINDOW_SIZE, 1]
+    if generator:
+        return (FEATURE_AMOUNT[feature], WINDOW_SIZE)
+    return (FEATURE_AMOUNT[feature], WINDOW_SIZE, 1)
 
 
 def CHECKPOINT_CALLBACK(model_name, feature_name):
@@ -280,7 +292,7 @@ def voxceleb(_shape, t=5) -> tf.keras.Model:
         # mpool5
         tf.keras.layers.MaxPooling2D(2, 2),
         # full6
-        tf.keras.layers.Flatten(),
+        # tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(4096, activation=tf.nn.relu),
         tf.keras.layers.Dropout(0.5),
         # apool6
@@ -308,6 +320,8 @@ def warohma18(_shape) -> tf.keras.Model:
     tf.keras.Model: A Keras Sequential model.
     """
     return tf.keras.Sequential([
+        tf.keras.layers.InputLayer(input_shape=_shape),
+        tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(50, activation=tf.nn.sigmoid, input_shape=_shape),
         tf.keras.layers.Dense(75, activation=tf.nn.sigmoid),
         tf.keras.layers.Dense(100, activation=tf.nn.sigmoid),
@@ -355,38 +369,39 @@ def draghici20(_shape, type='crnn') -> tf.keras.Model:
     model = tf.keras.Sequential()
 
     # ConvBlock(64) - Input
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=tf.nn.relu, input_shape=_shape))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), kernel_regularizer=tf.keras.regularizers.l2(WEIGHT_DECAY), activation=tf.nn.relu, input_shape=_shape))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
     # ConvBlock(128)
-    model.add(tf.keras.layers.Conv2D(128, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.Conv2D(128, (3, 3), kernel_regularizer=tf.keras.regularizers.l2(WEIGHT_DECAY), activation=tf.nn.relu))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
     # ConvBlock(256)
-    model.add(tf.keras.layers.Conv2D(256, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.Conv2D(256, (3, 3), kernel_regularizer=tf.keras.regularizers.l2(WEIGHT_DECAY), activation=tf.nn.relu))
     model.add(tf.keras.layers.BatchNormalization())
-    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
     # ConvBlock(256)
-    model.add(tf.keras.layers.Conv2D(256, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.Conv2D(256, (3, 3), kernel_regularizer=tf.keras.regularizers.l2(WEIGHT_DECAY), activation=tf.nn.relu))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
     # ConvBlock(512)
-    model.add(tf.keras.layers.Conv2D(512, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.Conv2D(512, (3, 3), kernel_regularizer=tf.keras.regularizers.l2(WEIGHT_DECAY), activation=tf.nn.relu))
+    model.add(tf.keras.layers.BatchNormalization())
+    # ConvBlock(512)
+    model.add(tf.keras.layers.Conv2D(512, (3, 3), kernel_regularizer=tf.keras.regularizers.l2(WEIGHT_DECAY), activation=tf.nn.relu))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
     # ConvBlock(512)
-    model.add(tf.keras.layers.Conv2D(512, (3, 3), activation=tf.nn.relu))
+    model.add(tf.keras.layers.Conv2D(512, (3, 3), kernel_regularizer=tf.keras.regularizers.l2(WEIGHT_DECAY), activation=tf.nn.relu))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
-    # ConvBlock(512)
-    model.add(tf.keras.layers.Conv2D(512, (3, 3), activation=tf.nn.relu))
-    model.add(tf.keras.layers.BatchNormalization())
-    model.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
-    # Global Max Pooling
-    model.add(tf.keras.layers.GlobalMaxPool2D())
+    # Permute — (bs, y, x, c) -> (bs, x, y, c)
+    model.add(tf.keras.layers.Permute((2, 1, 3)))
+    # Reshape — (bs, x, y, c) -> (bs, x, y*c)
+    bs, x, y, c = model.layers[-1].output_shape
+    model.add(tf.keras.layers.Reshape((x, y * c)))
     if type == 'crnn':
         # Bidirectional LSTM(256)
-        model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(256, return_sequences=True)))
+        model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(256, return_sequences=False), merge_mode='concat'))
         # TODO: check for model summary
     elif type == 'cnn':
         # Dense(1024)
@@ -394,3 +409,43 @@ def draghici20(_shape, type='crnn') -> tf.keras.Model:
     # Output
     model.add(tf.keras.layers.Dense(16, activation=tf.nn.softmax))
     return model
+
+
+def shon18(_shape) -> tf.keras.Model:
+    """Per Shon et al. (2018):
+    Our end-to-end system is based on [14, 13], but instead of a VGG [24] or Time Delayed Neural Network, we used four 1-dimensional CNN (1d-CNN) layers (40x5 - 500x7 - 500x1 - 500x1 filter sizes with 1-2-1-1 strides and the number of filters is 500-500-500-3000) and two FC layers (1500-600) that are connected with a Global average pooling layer which avrerages the CNN outputs to produce a fixed output size of 3000x1. After global average pooling, the fixed length output is fed into two FC layers and a Softmax layer.
+
+    Implementation in pytorch and Python 2 as described in this GitHub code: https://github.com/swshon/dialectID_e2e/blob/master/models/e2e_model.py
+
+    Args:
+        _shape (list): Shape of the input tensor
+
+    Returns:
+        tf.keras.Model: A Keras Sequential model.
+    """
+    return tf.keras.Sequential([
+        tf.keras.layers.Conv1D(250, 5, strides=1, input_shape=_shape),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv1D(250, 7, strides=2),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv1D(250, 1, strides=1),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv1D(1500, 1, strides=1),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.GlobalAveragePooling2D(),
+        tf.keras.layers.Dense(750),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+        tf.keras.layers.Dense(300),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+        tf.keras.layers.Dense(16, activation=tf.nn.softmax)
+    ])

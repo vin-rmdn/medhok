@@ -11,7 +11,9 @@
             "program": "${workspaceFolder}/medhok/main.py",
             "console": "integratedTerminal",
             "args": [
-                "extract"
+                "extract",
+                "new",
+                "spectrogram"
             ]
         },{
             "name": "Medhok: extract-preload debug",
@@ -20,8 +22,7 @@
             "program": "${workspaceFolder}/medhok/main.py",
             "console": "integratedTerminal",
             "args": [
-                "extract",
-                "preloaded"
+                "extract"
             ]
         },{
             "name": "Medhok: train debug",
@@ -31,6 +32,18 @@
             "console": "integratedTerminal",
             "args": [
                 "train"
+            ]
+        },
+        {
+            "name": "Medhok: train custom models debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/medhok/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "train",
+                "draghici20_crnn",
+                "mel_spectrogram"
             ]
         }
     ],

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""This module serves as a module for the Audio class, a class that prepares the data for the neural network."""
+
 import logging
 import os
 import time
@@ -27,7 +29,9 @@ class Audio:
         self.features = []
         self.metadata = {}
 
-    def __trim_silence(self, wave, feature=None):
+    @staticmethod
+    def trim_silence(wave, feature=None):
+        """Employs Voice Activity Detection on a wavefile to cut silence throughout the wavefile."""
         if feature is not None:
             frame_length = c.FRAME_SIZE
             hop_length = c.FRAME_STRIDE
@@ -75,21 +79,33 @@ class Audio:
             spec = specshow(
                 librosa.power_to_db(feature, ref=np.max),
                 sr=c.SAMPLE_RATE,
+                hop_length=c.FRAME_STRIDE,
                 y_axis='mel',
                 x_axis='time',
+                fmin=c.F_MIN,
+                fmax=c.F_MAX,
                 ax=ax
             )
             fig.colorbar(spec, format='%+2.0f dB', ax=ax)
         elif feature_name == 'spectrogram':
             plt.title(f'Spectrogram - {filepath.stem}')
-            spec = specshow(
-                librosa.power_to_db(feature, ref=np.max),
-                sr=c.SAMPLE_RATE,
-                hop_length=c.FRAME_STRIDE,
-                y_axis='linear',
-                x_axis='time',
-                ax=ax
+            spec = ax.imshow(
+                librosa.amplitude_to_db(
+                    feature
+                ),
+                aspect='auto',
+                origin='lower',
+                extent=[0, feature.shape[1] / c.SAMPLE_RATE, c.F_MIN, c.F_MAX],
+                cmap='viridis'
             )
+            # spec = specshow(
+            #     librosa.power_to_db(feature, ref=np.max),
+            #     sr=c.SAMPLE_RATE,
+            #     hop_length=c.FRAME_STRIDE,
+            #     y_axis='linear',
+            #     x_axis='time',
+            #     ax=ax
+            # )
             fig.colorbar(spec, format='%+2.0f dB', ax=ax)
         elif feature_name == 'mfcc':
             plt.title(f'MFCC - {filepath.stem}')
@@ -197,15 +213,15 @@ class Audio:
                     # (such as pre-emphasis, trimming silence, and segmenting)
                     wav = self.__load_audio(str(dialect_path / (file + '.wav')))[0]
                     wav = self.__pre_emphasize(wav)
-                    wav = self.__trim_silence(wav, feature=None)
+                    wav = Audio.trim_silence(wav, feature=None)
                     wav = self.__filter_frequency(wav)
                     feature = extractor(wav)
-                    # vis_timer = time.time()
-                    # self.__save_visualization(
-                    #     feature, c.VISUALIZATION_DIR / feature_name / dialect / f'{file}.svg',
-                    #     feature_name=feature_name
-                    # )
-                    # logging.info(f'Saving {file} visualization took {time.time() - vis_timer:.2f} second(s).')
+                    vis_timer = time.time()
+                    self.__save_visualization(
+                        feature, c.VISUALIZATION_DIR / feature_name / dialect / f'{file}.svg',
+                        feature_name=feature_name
+                    )
+                    logging.info('Saving %s visualization took %.2f second(s).', file, time.time() - vis_timer)
 
                     # Segments
                     segments = self.__split_segments(wav)
@@ -215,6 +231,9 @@ class Audio:
                         feature = extractor(segment)
                         feature = CMVN(feature)
                         feature = np.nan_to_num(feature)    # anticipate divide by 0
+                        if feature_name == 'spectrogram':
+                            feature = feature[c.SPEC_LOWER_BOUND:c.SPEC_UPPER_BOUND, :]
+                        feature = feature.astype(np.float16)    # FP16 after numba
 
                         # Cache features
                         filepath = str(c.FEATURES_DIR / feature_name / dialect / (file + '-' + feature_name + '-' + str(iteration)))
@@ -226,9 +245,9 @@ class Audio:
 
                         # Saving
                         np.save(filepath, feature)
-                        self.features.append(feature)
-                        logging.info(f'Iteration {iteration + 1} of {segments.shape[0]}, took {time.time() - split_start:.2f} seconds.')
-                    logging.info(f"\tTime taken: {time.time() - time_start}")
+                        # self.features.append(feature)
+                        logging.info('Iteration %d of %d, took %.2f seconds.', iteration + 1, segments.shape[0], time.time() - split_start)
+                    logging.info("\tTime taken: %.2f seconds.", time.time() - time_start)
                     del time_start, wav, segments, split_start, segment, feature, filepath
                     gc.collect()
                 else:

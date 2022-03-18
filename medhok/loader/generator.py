@@ -9,7 +9,7 @@ import tensorflow as tf
 class MedhokGenerator(tf.keras.utils.Sequence):
     """Medhok Generator: a generator that loads (split) files from disk (cached in data/features/) to memory.
     """
-    def __init__(self, list_wavs: list, batch_size=32, dim=(128, 667), n_channels=1, n_dialects=16, shuffle=True):
+    def __init__(self, list_wavs: list, batch_size=32, dim=(128, 667, 1), n_channels=1, n_dialects=16, shuffle=True, squeeze=False):
         """Initialization function.
 
         Args:
@@ -20,6 +20,7 @@ class MedhokGenerator(tf.keras.utils.Sequence):
             n_channels (int, optional): _description_. Defaults to 1.
             n_dialects (int, optional): _description_. Defaults to 16.
             shuffle (bool, optional): _description_. Defaults to True.
+            squeeze (bool, optional): _description_. Defaults to False.
         """
         self.list_wavs = list_wavs
         self.batch_size = batch_size
@@ -27,6 +28,7 @@ class MedhokGenerator(tf.keras.utils.Sequence):
         self.n_channels = n_channels
         self.n_dialects = n_dialects
         self.shuffle = shuffle
+        self.squeeze = squeeze
         with open('model/dialects-encoder.pkl', 'rb') as f:
             self.dialects_encoder = pickle.load(f)
         self.on_epoch_end()
@@ -37,12 +39,18 @@ class MedhokGenerator(tf.keras.utils.Sequence):
         Args:
             list_wavs_temp (list): Wav file list
         """
-        X = np.empty((self.batch_size, *self.dim, self.n_channels), dtype=np.float32)
-        y = np.empty((self.batch_size, self.n_dialects), dtype=np.float32)
+        _shape = (self.batch_size, *self.dim)
+        if not self.squeeze:
+            _shape += (self.n_channels, )
+        X = np.empty(_shape, dtype=np.float16)
+        y = np.empty((self.batch_size, self.n_dialects), dtype=np.uint8)
 
         for i, filename in enumerate(list_wavs_temp):
-            X[i, ] = np.load(filename)[:, :, np.newaxis]
-            y[i, ] = self.dialects_encoder.transform([[filename.parent.name]]).astype(np.float32)
+            if self.squeeze:
+                X[i, ] = np.load(filename).astype(np.float16)
+            else:
+                X[i, ] = np.load(filename)[:, :, np.newaxis].astype(np.float16)
+            y[i, ] = self.dialects_encoder.transform([[filename.parent.name]]).astype(np.uint8)
             # logging.info(f'Got size {X[i].shape} and {y[i].shape} of dtype {X[i].dtype} and {y[i].dtype}')
 
         return X, y

@@ -1,0 +1,26 @@
+2022-03-12 05:05:29.512919: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-12 05:05:29.545206: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-12 05:05:29.545484: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-12 05:05:29.545903: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-03-12 05:05:29.546506: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-12 05:05:29.546727: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-12 05:05:29.546929: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-12 05:05:29.950858: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-12 05:05:29.951095: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-12 05:05:29.951288: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-12 05:05:29.951441: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 4324 MB memory:  -> device: 0, name: NVIDIA GeForce GTX 1660, pci bus id: 0000:29:00.0, compute capability: 7.5
+INFO:root:Features selected: mel_spectrogram
+INFO:root:Dataset loaded with 51173 on training and 5686 on validation.
+Traceback (most recent call last):
+  File "./medhok/main.py", line 80, in <module>
+    model = c.voxceleb(c.INPUT_SHAPE(feature))
+  File "/home/vin/Projects/medhok/medhok/config.py", line 255, in voxceleb
+    return tf.keras.Sequential([
+  File "/home/vin/miniconda3/lib/python3.8/site-packages/tensorflow/python/training/tracking/base.py", line 530, in _method_wrapper
+    result = method(self, *args, **kwargs)
+  File "/home/vin/miniconda3/lib/python3.8/site-packages/keras/utils/traceback_utils.py", line 67, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "/home/vin/miniconda3/lib/python3.8/site-packages/keras/engine/input_spec.py", line 213, in assert_input_compatibility
+    raise ValueError(f'Input {input_index} of layer "{layer_name}" '
+ValueError: Input 0 of layer "average_pooling2d" is incompatible with the layer: expected ndim=4, found ndim=2. Full shape received: (None, 4096)

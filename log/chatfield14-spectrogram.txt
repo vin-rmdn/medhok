@@ -1,0 +1,85 @@
+2022-03-16 06:12:49.556755: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-16 06:12:49.589136: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-16 06:12:49.589381: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-16 06:12:49.589748: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-03-16 06:12:49.590347: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-16 06:12:49.590543: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-16 06:12:49.590721: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-16 06:12:50.005107: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-16 06:12:50.005350: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-16 06:12:50.005544: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-16 06:12:50.005705: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 4236 MB memory:  -> device: 0, name: NVIDIA GeForce GTX 1660, pci bus id: 0000:29:00.0, compute capability: 7.5
+INFO:root:Features selected: spectrogram
+INFO:root:Dataset loaded with 51173 on training and 5686 on validation.
+INFO:root:Loading Keras generator...
+Model: "sequential"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ conv2d (Conv2D)             (None, 98, 248, 96)       4800      
+                                                                 
+ lambda (Lambda)             (None, 98, 248, 96)       0         
+                                                                 
+ max_pooling2d (MaxPooling2D  (None, 49, 124, 96)      0         
+ )                                                               
+                                                                 
+ zero_padding2d (ZeroPadding  (None, 51, 126, 96)      0         
+ 2D)                                                             
+                                                                 
+ conv2d_1 (Conv2D)           (None, 24, 61, 256)       614656    
+                                                                 
+ lambda_1 (Lambda)           (None, 24, 61, 256)       0         
+                                                                 
+ max_pooling2d_1 (MaxPooling  (None, 12, 30, 256)      0         
+ 2D)                                                             
+                                                                 
+ zero_padding2d_1 (ZeroPaddi  (None, 14, 32, 256)      0         
+ ng2D)                                                           
+                                                                 
+ conv2d_2 (Conv2D)           (None, 12, 30, 512)       1180160   
+                                                                 
+ zero_padding2d_2 (ZeroPaddi  (None, 14, 32, 512)      0         
+ ng2D)                                                           
+                                                                 
+ conv2d_3 (Conv2D)           (None, 12, 30, 512)       2359808   
+                                                                 
+ zero_padding2d_3 (ZeroPaddi  (None, 14, 32, 512)      0         
+ ng2D)                                                           
+                                                                 
+ conv2d_4 (Conv2D)           (None, 12, 30, 512)       2359808   
+                                                                 
+ max_pooling2d_2 (MaxPooling  (None, 6, 15, 512)       0         
+ 2D)                                                             
+                                                                 
+ flatten (Flatten)           (None, 46080)             0         
+                                                                 
+ dense (Dense)               (None, 4096)              188747776 
+                                                                 
+ dropout (Dropout)           (None, 4096)              0         
+                                                                 
+ dense_1 (Dense)             (None, 4096)              16781312  
+                                                                 
+ dropout_1 (Dropout)         (None, 4096)              0         
+                                                                 
+ dense_2 (Dense)             (None, 16)                65552     
+                                                                 
+=================================================================
+Total params: 212,113,872
+Trainable params: 212,113,872
+Non-trainable params: 0
+_________________________________________________________________
+INFO:root:Training model: chatfield14...
+Epoch 1/200
+2022-03-16 06:12:52.548386: I tensorflow/stream_executor/cuda/cuda_dnn.cc:366] Loaded cuDNN version 8302
+2022-03-16 06:12:53.340096: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 1.12GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+2022-03-16 06:12:53.340171: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 1.12GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+2022-03-16 06:12:53.422471: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 2.22GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+2022-03-16 06:12:53.422541: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 2.22GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+2022-03-16 06:12:53.436997: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 1.14GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+2022-03-16 06:12:53.437053: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 1.14GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+2022-03-16 06:12:53.650218: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 1.21GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+2022-03-16 06:12:53.650289: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 1.21GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+2022-03-16 06:12:53.713833: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 2.15GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+2022-03-16 06:12:53.713910: W tensorflow/core/common_runtime/bfc_allocator.cc:275] Allocator (GPU_0_bfc) ran out of memory trying to allocate 2.15GiB with freed_by_count=0. The caller indicates that this is not a failure, but may mean that there could be performance gains if more memory were available.
+  1/128 [..............................] - ETA: 6:48 - loss: 2.7747 - acc: 0.1250 - prec: 0.0000e+00 - rec: 0.0000e+00 - f1: 0.0667  2/128 [..............................] - ETA: 36s - loss: 2.7415 - acc: 0.1562 - prec: 0.0000e+00 - rec: 0.0000e+00 - f1: 0.0712   3/128 [..............................] - ETA: 36s - loss: 2.7003 - acc: 0.1875 - prec: 0.0000e+00 - rec: 0.0000e+00 - f1: 0.0641  4/128 [..............................] - ETA: 36s - loss: 2.6107 - acc: 0.2031 - prec: 0.0000e+00 - rec: 0.0000e+00 - f1: 0.0568  5/128 [>.............................] - ETA: 35s - loss: 2.6717 - acc: 0.2000 - prec: 0.2500 - rec: 0.0125 - f1: 0.0437        

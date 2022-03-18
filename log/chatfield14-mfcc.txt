@@ -1,0 +1,31 @@
+2022-03-14 21:14:40.666007: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-14 21:14:40.778738: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-14 21:14:40.779047: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-14 21:14:40.779879: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-03-14 21:14:40.780789: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-14 21:14:40.781057: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-14 21:14:40.781302: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-14 21:14:41.662729: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-14 21:14:41.663026: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-14 21:14:41.663271: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-03-14 21:14:41.663465: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 4461 MB memory:  -> device: 0, name: NVIDIA GeForce GTX 1660, pci bus id: 0000:29:00.0, compute capability: 7.5
+INFO:root:Features selected: mfcc
+INFO:root:Dataset loaded with 51173 on training and 5686 on validation.
+Traceback (most recent call last):
+  File "./medhok/main.py", line 78, in <module>
+    model = c.chatfield14(c.INPUT_SHAPE(feature))
+  File "/home/vin/Projects/medhok/medhok/config.py", line 209, in chatfield14
+    return tf.keras.Sequential([
+  File "/home/vin/miniconda3/lib/python3.8/site-packages/tensorflow/python/training/tracking/base.py", line 530, in _method_wrapper
+    result = method(self, *args, **kwargs)
+  File "/home/vin/miniconda3/lib/python3.8/site-packages/keras/utils/traceback_utils.py", line 67, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "/home/vin/miniconda3/lib/python3.8/site-packages/tensorflow/python/framework/ops.py", line 1939, in _create_c_op
+    raise ValueError(e.message)
+ValueError: Exception encountered when calling layer "max_pooling2d_2" (type MaxPooling2D).
+
+Negative dimension size caused by subtracting 2 from 1 for '{{node max_pooling2d_2/MaxPool}} = MaxPool[T=DT_FLOAT, data_format="NHWC", explicit_paddings=[], ksize=[1, 2, 2, 1], padding="VALID", strides=[1, 2, 2, 1]](Placeholder)' with input shapes: [?,1,30,512].
+
+Call arguments received:
+  • inputs=tf.Tensor(shape=(None, 1, 30, 512), dtype=float32)

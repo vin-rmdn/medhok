@@ -21,7 +21,7 @@ class FeatureMetadata:
         Returns:
             list: List of feature metadata.
         """
-        features = c.FEATURES_DIR.glob(f'**/*-{feature_name}-*.npy')
+        features = (c.FEATURES_DIR / feature_name).glob(f'**/*-{feature_name}-*.npy')
         metadata_feat = np.array([f for f in features])
         # Sampling
         if sample:

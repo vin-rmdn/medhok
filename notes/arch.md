@@ -124,3 +124,15 @@ Time-delay neural network (Snyder et al., 2017)
 
 ## Loss
 Categorical Cross-entropy (Snyder et al., 2017)
+
+## Performance (by validation)
+- Baseline, Mel Spectrogram: 74%
+- Baseline, Spectrogram: 67%
+- Chatfield et al. (2014), Mel Spectrogram: 86%
+- Chatfield et al. (2014), Spectrogram: xxx
+- Chatfield et al. (2014), MFCC: (convolutional layer too many)
+- Dragichi et al. (2020), Mel Spectrogram: 66%
+- Dragichi et al. (2020), Spectrogram: 73%
+- Warohma et al. (2018), Mel Spectrogram: 45%
+- Warohma et al. (2018), MFCC: 71%
+- Warohma et al. (2018), Spectrogram: 46%
