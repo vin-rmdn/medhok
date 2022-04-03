@@ -2,7 +2,7 @@
 from numba import jit
 import numpy as np
 
-import config as c
+from configs import config as c
 
 
 @jit(nopython=True, fastmath=True)

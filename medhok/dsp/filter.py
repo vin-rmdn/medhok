@@ -6,7 +6,7 @@ This module is developed to help with filtering of frequency in waves.
 import numpy as np
 from scipy.signal import butter, lfilter, filtfilt
 
-import config as c
+from configs import config as c
 
 
 def butter_lowpass(cutoff=c.F_MAX, fs=c.SAMPLE_RATE, order=c.POLYNOMIAL_ORDER):

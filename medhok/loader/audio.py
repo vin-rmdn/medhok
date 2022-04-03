@@ -13,7 +13,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 from dsp.filter import butter_highpass_filter, butter_lowpass_filter
 
-import config as c
+from configs import config as c
 from loader.audio_numba import CMVN
 
 matplotlib.use('svg')
@@ -32,18 +32,20 @@ class Audio:
     @staticmethod
     def trim_silence(wave, feature=None):
         """Employs Voice Activity Detection on a wavefile to cut silence throughout the wavefile."""
-        if feature is not None:
-            frame_length = c.FRAME_SIZE
-            hop_length = c.FRAME_STRIDE
-        else:
-            frame_length = 1
-            hop_length = 1
-        _rms = librosa.feature.rms(wave, hop_length=hop_length, frame_length=frame_length)
+        _rms = librosa.feature.rms(y=wave, hop_length=c.FRAME_STRIDE, frame_length=c.FRAME_SIZE)
         _threshold = np.mean(_rms) / 2 * 1.04   # formula from Shon et al. (2018)
         _mask = np.nonzero(_rms > _threshold)[1]
+
+        # Refabrication of new audio. Current code clips the last frame size.
+        wave_new = np.zeros((_mask.shape[0] - 1) * c.FRAME_STRIDE)
+        for i, window in enumerate(_mask):
+            try:
+                wave_new[i * c.FRAME_STRIDE:i * c.FRAME_STRIDE + c.FRAME_SIZE] = wave[window * c.FRAME_STRIDE:(window * c.FRAME_STRIDE) + c.FRAME_SIZE]
+            except:
+                pass    # we can afford to clip the last bit
         if feature is not None:
             return wave[:, _mask]
-        return wave[_mask]
+        return wave_new
 
     def __pre_emphasize(self, wav):
         return np.append(wav[0], wav[1:] - c.PRE_EMPHASIS_ALPHA * wav[:-1])
@@ -200,7 +202,7 @@ class Audio:
             dialect = dialect_path.name
             if not os.path.exists(c.FEATURES_DIR / feature_name):
                 os.mkdir(c.FEATURES_DIR / feature_name)
-            if not os.path.exists(c.FEATURES_DIR / feature_name/ dialect):
+            if not os.path.exists(c.FEATURES_DIR / feature_name / dialect):
                 os.mkdir(c.FEATURES_DIR / feature_name / dialect)
             wav_iter = 1
             for file in self.metadata[dialect]:
@@ -216,12 +218,12 @@ class Audio:
                     wav = Audio.trim_silence(wav, feature=None)
                     wav = self.__filter_frequency(wav)
                     feature = extractor(wav)
-                    vis_timer = time.time()
-                    self.__save_visualization(
-                        feature, c.VISUALIZATION_DIR / feature_name / dialect / f'{file}.svg',
-                        feature_name=feature_name
-                    )
-                    logging.info('Saving %s visualization took %.2f second(s).', file, time.time() - vis_timer)
+                    # vis_timer = time.time()
+                    # self.__save_visualization(
+                    #     feature, c.VISUALIZATION_DIR / feature_name / dialect / f'{file}.svg',
+                    #     feature_name=feature_name
+                    # )
+                    # logging.info('Saving %s visualization took %.2f second(s).', file, time.time() - vis_timer)
 
                     # Segments
                     segments = self.__split_segments(wav)

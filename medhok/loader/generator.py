@@ -43,14 +43,14 @@ class MedhokGenerator(tf.keras.utils.Sequence):
         if not self.squeeze:
             _shape += (self.n_channels, )
         X = np.empty(_shape, dtype=np.float16)
-        y = np.empty((self.batch_size, self.n_dialects), dtype=np.uint8)
+        y = np.empty((self.batch_size, self.n_dialects), dtype=np.float16)
 
         for i, filename in enumerate(list_wavs_temp):
             if self.squeeze:
-                X[i, ] = np.load(filename).astype(np.float16)
+                X[i, ] = np.load(filename)
             else:
-                X[i, ] = np.load(filename)[:, :, np.newaxis].astype(np.float16)
-            y[i, ] = self.dialects_encoder.transform([[filename.parent.name]]).astype(np.uint8)
+                X[i, ] = np.load(filename)[:, :, np.newaxis]
+            y[i, ] = self.dialects_encoder.transform([[filename.parent.name]])
             # logging.info(f'Got size {X[i].shape} and {y[i].shape} of dtype {X[i].dtype} and {y[i].dtype}')
 
         return X, y
@@ -64,6 +64,8 @@ class MedhokGenerator(tf.keras.utils.Sequence):
         indexes = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
         list_wavs_temp = [self.list_wavs[k] for k in indexes]
         X, y = self.__data_generation(list_wavs_temp)
+        # print(y)
+        # print(y.shape)
         return X, y
 
     def on_epoch_end(self):

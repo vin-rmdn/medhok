@@ -2,7 +2,7 @@
 import logging
 import pickle
 import numpy as np
-import config as c
+from configs import config as c
 
 
 class GreedyLoader:
@@ -19,10 +19,3 @@ class GreedyLoader:
         print()
         logging.info('Greedy loading finished.')
         return features
-
-    @staticmethod
-    def transform_dialects(dialects):
-        with open('model/dialects-encoder.pkl', 'rb') as f:
-            dialects_encoder = pickle.load(f)
-        dialects_onehot = dialects_encoder.transform(dialects).astype(np.float32)
-        return dialects_onehot

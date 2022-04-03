@@ -44,6 +44,19 @@
                 "train",
                 "draghici20_crnn",
                 "mel_spectrogram"
+            ],
+            // "justMyCode": false
+        },
+        {
+            "name": "Medhok: finetune custom models debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/medhok/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "finetune",
+                "shon18",
+                "spectrogram"
             ]
         }
     ],

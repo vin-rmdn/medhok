@@ -1,31 +1,42 @@
-2022-03-14 21:14:40.666007: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-03-14 21:14:40.778738: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-03-14 21:14:40.779047: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-03-14 21:14:40.779879: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+2022-04-01 16:11:15.381140: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-04-01 16:11:15.493411: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-04-01 16:11:15.493861: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-04-01 16:11:15.495261: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2022-03-14 21:14:40.780789: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-03-14 21:14:40.781057: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-03-14 21:14:40.781302: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-03-14 21:14:41.662729: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-03-14 21:14:41.663026: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-03-14 21:14:41.663271: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-03-14 21:14:41.663465: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 4461 MB memory:  -> device: 0, name: NVIDIA GeForce GTX 1660, pci bus id: 0000:29:00.0, compute capability: 7.5
-INFO:root:Features selected: mfcc
-INFO:root:Dataset loaded with 51173 on training and 5686 on validation.
+2022-04-01 16:11:15.496598: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-04-01 16:11:15.496999: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-04-01 16:11:15.497363: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-04-01 16:11:16.707436: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-04-01 16:11:16.707729: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-04-01 16:11:16.707990: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-04-01 16:11:16.708198: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 4137 MB memory:  -> device: 0, name: NVIDIA GeForce GTX 1660, pci bus id: 0000:29:00.0, compute capability: 7.5
+2022-04-01 16:11:16.762444: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:939] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+INFO:tensorflow:Mixed precision compatibility check (mixed_float16): OK
+Your GPU will likely run quickly with dtype policy mixed_float16 as it has compute capability of at least 7.0. Your GPU: NVIDIA GeForce GTX 1660, compute capability 7.5
+INFO:tensorflow:Mixed precision compatibility check (mixed_float16): OK
+Your GPU will likely run quickly with dtype policy mixed_float16 as it has compute capability of at least 7.0. Your GPU: NVIDIA GeForce GTX 1660, compute capability 7.5
+INFO:root:Compute dtype: float16
+INFO:root:Variable dtype: float32
+INFO:root:Dataset loaded with 32274 on training and 3586 on validation.
+INFO:root:Loading Keras generator...
 Traceback (most recent call last):
-  File "./medhok/main.py", line 78, in <module>
-    model = c.chatfield14(c.INPUT_SHAPE(feature))
-  File "/home/vin/Projects/medhok/medhok/config.py", line 209, in chatfield14
+  File "/home/vin/Projects/medhok/./medhok/main.py", line 48, in <module>
+    history = train_model(sys.argv[2], sys.argv[3])
+  File "/home/vin/Projects/medhok/medhok/app/train.py", line 89, in train_model
+    model = __select_model(arch, feature)
+  File "/home/vin/Projects/medhok/medhok/app/train.py", line 30, in __select_model
+    model = m.chatfield14(c.INPUT_SHAPE(feature))
+  File "/home/vin/Projects/medhok/medhok/configs/models.py", line 47, in chatfield14
     return tf.keras.Sequential([
-  File "/home/vin/miniconda3/lib/python3.8/site-packages/tensorflow/python/training/tracking/base.py", line 530, in _method_wrapper
+  File "/home/vin/mambaforge/lib/python3.9/site-packages/tensorflow/python/training/tracking/base.py", line 530, in _method_wrapper
     result = method(self, *args, **kwargs)
-  File "/home/vin/miniconda3/lib/python3.8/site-packages/keras/utils/traceback_utils.py", line 67, in error_handler
+  File "/home/vin/mambaforge/lib/python3.9/site-packages/keras/utils/traceback_utils.py", line 67, in error_handler
     raise e.with_traceback(filtered_tb) from None
-  File "/home/vin/miniconda3/lib/python3.8/site-packages/tensorflow/python/framework/ops.py", line 1939, in _create_c_op
+  File "/home/vin/mambaforge/lib/python3.9/site-packages/tensorflow/python/framework/ops.py", line 1939, in _create_c_op
     raise ValueError(e.message)
 ValueError: Exception encountered when calling layer "max_pooling2d_2" (type MaxPooling2D).
 
-Negative dimension size caused by subtracting 2 from 1 for '{{node max_pooling2d_2/MaxPool}} = MaxPool[T=DT_FLOAT, data_format="NHWC", explicit_paddings=[], ksize=[1, 2, 2, 1], padding="VALID", strides=[1, 2, 2, 1]](Placeholder)' with input shapes: [?,1,30,512].
+Negative dimension size caused by subtracting 2 from 1 for '{{node max_pooling2d_2/MaxPool}} = MaxPool[T=DT_HALF, data_format="NHWC", explicit_paddings=[], ksize=[1, 2, 2, 1], padding="VALID", strides=[1, 2, 2, 1]](Placeholder)' with input shapes: [?,1,30,512].
 
 Call arguments received:
-  • inputs=tf.Tensor(shape=(None, 1, 30, 512), dtype=float32)
+  • inputs=tf.Tensor(shape=(None, 1, 30, 512), dtype=float16)

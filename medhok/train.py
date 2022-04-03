@@ -10,62 +10,7 @@ import tensorflow_addons as tfa
 from matplotlib import pyplot as plt
 
 import get_dataset as ds
-import config as c
-
-# Setup
-np.random.seed(42)
-tf.random.set_seed(42)
-
-
-def create_model(
-    feature='mel_spectrogram',
-    arch='cnn',
-    base_neuron=32,
-    classes=len(c.DIALECTS)
-):
-    """Creates a TensorFlow model.
-
-    Args:
-        feature (str, optional): Audio feature used. Defaults to 'mel_spec'.
-        arch (str, optional): Architecture used. Defaults to 'cnn'.
-    """
-    _feat_amount = 128 if feature == 'mel_spectrogram' else (129 if feature == 'spectrogram' else 40)
-    _shape = (_feat_amount, c.WINDOW_SIZE, 1)
-
-    print(f'Using shape: {_shape}')
-
-    if arch == 'cnn':
-        model = tf.keras.Sequential()
-        # Input
-        model.add(tf.keras.layers.Conv2D(
-            base_neuron, (3, 3), activation=tf.nn.relu, input_shape=_shape))
-        model.add(tf.keras.layers.MaxPooling2D(2, 2))
-        model.add(tf.keras.layers.Conv2D(base_neuron << 1, (3, 3), activation=tf.nn.relu))
-        model.add(tf.keras.layers.MaxPooling2D(2, 2))
-        model.add(tf.keras.layers.Conv2D(base_neuron << 2, (3, 3), activation=tf.nn.relu))
-        model.add(tf.keras.layers.MaxPooling2D(2, 2))
-        if feature != 'mfcc':
-            model.add(tf.keras.layers.Conv2D(base_neuron << 3, (3, 3), activation=tf.nn.relu))
-            model.add(tf.keras.layers.MaxPooling2D(2, 2))
-        model.add(tf.keras.layers.Flatten())
-        model.add(tf.keras.layers.Dense(base_neuron, activation=tf.nn.relu))
-        model.add(tf.keras.layers.Dense(
-            base_neuron << 1, activation=tf.nn.relu))
-        model.add(tf.keras.layers.Dense(
-            base_neuron << 2, activation=tf.nn.relu))
-        model.add(tf.keras.layers.Dense(classes, activation=tf.nn.softmax))
-    elif arch == 'vgg19':   # Transfer Learning: VGG19
-        model = tf.keras.application.vgg19.VGG19(
-            input_shape=_shape,
-            include_top=False,
-            weights='imagenet'
-        )
-        model.trainable = False
-    elif arch == 'chatfield2014':
-        # Chatfield: article mentioned by Shon et al. (2018)
-        model = c.chatfield14
-
-    return model
+from configs import config as c
 
 
 def main(feature_name='mel_spectrogram', arch='cnn'):
