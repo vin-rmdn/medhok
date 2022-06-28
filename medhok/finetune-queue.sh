@@ -16,12 +16,12 @@
 
 # Warohma et al. (2018)
 # python -u ./medhok/main.py finetune warohma18 mel_spectrogram 2>&1 | tee log/warohma18-mel_spectrogram-finetune.txt
-# python -u ./medhok/main.py finetune warohma18 spectrogram 2>&1 | tee log/warohma18-spectrogram-finetune.txt
+python -u ./medhok/main.py finetune warohma18 spectrogram 2>&1 | tee log/warohma18-spectrogram-finetune.txt
 # python -u ./medhok/main.py finetune warohma18 mfcc 2>&1 | tee log/warohma18-mfcc-finetune.txt
 
 # Draghici et al. (2020) - CRNN
-python -u ./medhok/main.py finetune draghici20_crnn mel_spectrogram 2>&1 | tee log/draghici20_crnn-mel_spectrogram-finetune.txt
-python -u ./medhok/main.py finetune draghici20_crnn spectrogram 2>&1 | tee log/draghici20_crnn-spectrogram-finetune.txt
+# python -u ./medhok/main.py finetune draghici20_crnn mel_spectrogram 2>&1 | tee log/draghici20_crnn-mel_spectrogram-finetune.txt
+# python -u ./medhok/main.py finetune draghici20_crnn spectrogram 2>&1 | tee log/draghici20_crnn-spectrogram-finetune.txt
 # python -u ./medhok/main.py train draghici20_crnn mfcc 2>&1 | tee log/draghici20_crnn-mfcc.txt
 
 echo Done!

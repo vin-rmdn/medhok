@@ -8,6 +8,7 @@ from typing import Tuple
 
 import tensorflow as tf
 import numpy as np
+# import visualkeras
 
 from loader.feature_metadata import FeatureMetadata
 from loader.dataset import create_dataset
@@ -20,7 +21,7 @@ np.random.seed(42)
 tf.random.set_seed(42)
 
 
-def __set_mixed_precision() -> None:
+def set_mixed_precision() -> None:
     # Keras: setting up mixed precision
     policy = tf.keras.mixed_precision.Policy('mixed_float16')
     tf.keras.mixed_precision.set_global_policy(policy)
@@ -28,7 +29,7 @@ def __set_mixed_precision() -> None:
     logging.info('Variable dtype: %s', policy.variable_dtype)
 
 
-def __select_model(arch: str = 'baseline', feature: str = 'mel_spectrogram'):
+def select_model(arch: str = 'baseline', feature: str = 'mel_spectrogram', finetuned=False, pre_finetuned=False):
     # Determining the right model builder
     if arch == 'baseline':
         model = m.baseline(c.INPUT_SHAPE(feature))
@@ -49,6 +50,17 @@ def __select_model(arch: str = 'baseline', feature: str = 'mel_spectrogram'):
     else:
         logging.error('Unknown model: %s', sys.argv[2])
         sys.exit(1)
+
+    model.compile(
+        optimizer=c.OPTIMIZER,
+        loss=c.LOSS,
+        metrics=c.METRICS
+    )
+
+    if pre_finetuned or finetuned:
+        logging.info('Loading checkpoint weights and evaluating...')
+        model.load_weights(c.CHECKPOINT_DIR / f'{arch}-{feature}' / f'{arch}-{feature}{"-finetune" if finetuned else ""}')
+
     return model
 
 
@@ -56,7 +68,6 @@ def __load_generator(arch: str = 'baseline', feature: str = 'mel_spectrogram') -
     # Getting features metadata
     X_train, X_test, y_train, y_test = FeatureMetadata.load_feature_metadata(feature, split=True, pathlib=c.USE_PATHLIB)
     logging.info('Dataset loaded with %d on training and %d on validation.', X_train.shape[0], X_test.shape[0])
-    # X_train, X_test, y_train, y_test = FeatureMetadata.load_feature_metadata(feature, split=True, sample=True)
     y_train = FeatureMetadata.transform_dialects(y_train)
     y_test = FeatureMetadata.transform_dialects(y_test)
 
@@ -92,32 +103,25 @@ def __load_dataset(arch: str = 'baseline', feature: str = 'mel_spectrogram'):
     return train_data, valid_data
 
 
+# def __create_graph(model, arch: str = 'baseline') -> None:
+#     # ann_viz(model, title=arch, view=False, filename=f'visualization/graph/{arch}.gv')
+#     visualkeras.layered_view(model, to_file=f'visualization/graph/{arch}.png')
+
+
 def train_model(arch: str = 'baseline', feature: str = 'mel_spectrogram') -> dict:
-    __set_mixed_precision()
+    set_mixed_precision()
     train_generator, valid_generator = __load_generator(arch, feature)
-    # train_data, valid_data = __load_dataset(arch, feature)
-    model = __select_model(arch, feature)
+    model = select_model(arch, feature)
 
     logging.info('Showing model summary for %s', arch)
     model.summary()
-    model.compile(
-        optimizer=c.OPTIMIZER,
-        loss=c.LOSS,
-        metrics=c.METRICS
-    )
 
-    # Taking dataset
-    # for batch in train_data.take(1):
-    #     print(batch)
+    # __create_graph(model, arch)
 
     logging.info('Training model: %s...', arch)
     history = model.fit(
         train_generator,
-        # train_data,
-        # y=y_train,
         validation_data=valid_generator,
-        # validation_data=valid_data,
-        # validation_steps=c.VALIDATION_STEPS,
         epochs=c.EPOCHS,
         steps_per_epoch=c.EPOCH_STEPS,
         verbose=1,
@@ -136,27 +140,16 @@ def train_model(arch: str = 'baseline', feature: str = 'mel_spectrogram') -> dic
 
 
 def finetune(arch: str = 'baseline', feature: str = 'mel_spectrogram') -> dict:
-    __set_mixed_precision()
-    # train_data, valid_data = __load_dataset(arch, feature)
-    # tf.debugging.set_log_device_placement(True)
+    set_mixed_precision()
     train_generator, valid_generator = __load_generator(arch, feature)
-    model = __select_model(arch, feature)
-    model.compile(
-        optimizer=c.FINETUNE_OPTIMIZER,
-        loss=c.LOSS,
-        metrics=c.METRICS
-    )
+    model = select_model(arch, feature, pre_finetuned=True)
 
-    logging.info('Loading checkpoint weights and evaluating...')
-    model.load_weights(c.CHECKPOINT_DIR / f'{arch}-{feature}' / f'{arch}-{feature}')
     model.evaluate(valid_generator)
 
     logging.info('Fine-tuning...')
     history = model.fit(
-        # train_data,
         train_generator,
         validation_data=valid_generator,
-        # validation_steps=c.VALIDATION_STEPS,
         epochs=c.FINETUNE_EPOCHS,
         steps_per_epoch=c.FINETUNE_STEPS,
         verbose=1,

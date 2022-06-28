@@ -5,6 +5,7 @@ import logging
 from loader.audio import Audio
 from app.train import train_model, finetune
 from app.visualization import visualize_train_hist
+from app.evaluation import evaluate_models, evaluate_model
 from configs import config as c
 
 # STARTUP PARAMETERS
@@ -65,3 +66,10 @@ if __name__ == '__main__':
                 logging.info('No parameters given. Using default options')
                 history = finetune()
                 visualize_train_hist(history, finetune=True)
+        elif sys.argv[1] == 'evaluate':
+            if len(sys.argv) > 2:
+                logging.info('Evaluating model %s', sys.argv[2])
+                evaluate_model(sys.argv[2])
+            else:
+                logging.info('Evaluating model.')
+                evaluate_models()
