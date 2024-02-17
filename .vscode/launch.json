@@ -58,6 +58,26 @@
                 "shon18",
                 "spectrogram"
             ]
+        },
+        {
+            "name": "Medhok: evaluate",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/medhok/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "evaluate"
+            ]
+        },{
+            "name": "Medhok: evaluate a model",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/medhok/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "evaluate",
+                "shon18"
+            ]
         }
     ],
 }

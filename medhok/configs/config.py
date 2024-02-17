@@ -13,6 +13,10 @@ import librosa
 # import matplotlib
 
 
+# Random
+np.random.seed(42)
+
+
 # DEBUG
 DEBUG = True
 POOL_SIZE = 12  # Number of threads
@@ -40,6 +44,12 @@ FEATURE_AMOUNT = {
     'mel_spectrogram': 128,
     'spectrogram': 190,
     'mfcc': 40
+}
+MODEL_ARCHITECTURES = {
+    'warohma18',
+    'chatfield14',
+    'shon18',
+    'draghici20_crnn'
 }
 USE_PATHLIB = True     # True for Generator, False for tf.data.Dataset
 
@@ -185,3 +195,14 @@ def CHECKPOINT_CALLBACK(model_name, feature_name, finetune=False):
         save_weights_only=True,
         verbose=1
     )
+
+
+def CONFLICT_CHECK(arch, feature):
+    if (
+        arch == 'chatfield14' and feature == 'mfcc'
+    ) or (
+        arch == 'draghici20_crnn' and feature == 'mfcc'
+    ):
+        return True
+    else:
+        return False

@@ -47,20 +47,12 @@ def chatfield14(_shape) -> tf.keras.Model:
     return tf.keras.Sequential([
         # conv1
         tf.keras.layers.Conv2D(96, (7, 7), 2, input_shape=_shape),
-        # tf.keras.layers.Lambda(
-        #     lambda x: tf.nn.local_response_normalization(
-        #         x, alpha=1e-4, beta=0.75, bias=2, depth_radius=5)),
-        # LocalResponseNormalization(alpha=1e-4, beta=0.75, bias=2, depth_radius=5),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU(),
         tf.keras.layers.MaxPooling2D(2, 2),
         # conv2
         tf.keras.layers.ZeroPadding2D(1),
         tf.keras.layers.Conv2D(256, (5, 5), 2),
-        # tf.keras.layers.Lambda(
-        #     lambda x: tf.nn.local_response_normalization(
-        #         x, alpha=1e-4, beta=0.75, bias=2, depth_radius=5)),
-        # LocalResponseNormalization(alpha=1e-4, beta=0.75, bias=2, depth_radius=5),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU(),
         tf.keras.layers.MaxPooling2D(2, 2),

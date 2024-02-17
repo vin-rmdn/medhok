@@ -47,10 +47,12 @@ class Audio:
             return wave[:, _mask]
         return wave_new
 
-    def __pre_emphasize(self, wav):
+    @staticmethod
+    def pre_emphasize(wav):
         return np.append(wav[0], wav[1:] - c.PRE_EMPHASIS_ALPHA * wav[:-1])
 
-    def __filter_frequency(self, wav) -> np.ndarray:
+    @staticmethod
+    def filter_frequency(wav) -> np.ndarray:
         """Filter the wave frequency to only include frequencies audible to humans.
 
         Args:
@@ -129,7 +131,8 @@ class Audio:
         del fig, ax
         gc.collect()
 
-    def __split_segments(self, wav) -> np.ndarray:
+    @staticmethod
+    def split_segments(wav) -> np.ndarray:
         """Splits a wav file into several segments of decided seconds.
 
         Args:
@@ -214,9 +217,9 @@ class Audio:
                     # Loading audio and doing wave signal modification
                     # (such as pre-emphasis, trimming silence, and segmenting)
                     wav = self.__load_audio(str(dialect_path / (file + '.wav')))[0]
-                    wav = self.__pre_emphasize(wav)
+                    wav = Audio.pre_emphasize(wav)
                     wav = Audio.trim_silence(wav, feature=None)
-                    wav = self.__filter_frequency(wav)
+                    wav = Audio.filter_frequency(wav)
                     feature = extractor(wav)
                     # vis_timer = time.time()
                     # self.__save_visualization(
@@ -226,7 +229,7 @@ class Audio:
                     # logging.info('Saving %s visualization took %.2f second(s).', file, time.time() - vis_timer)
 
                     # Segments
-                    segments = self.__split_segments(wav)
+                    segments = Audio.split_segments(wav)
                     for iteration in range(segments.shape[0]):
                         split_start = time.time()
                         segment = segments[iteration]
