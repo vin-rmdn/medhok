@@ -6,3 +6,4 @@ model/*
 script/__pycache__/*
 data/*
 medhok/**/__pycache__/*
+**/.DS_Store
